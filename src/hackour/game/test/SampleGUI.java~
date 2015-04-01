@@ -1,0 +1,30 @@
+package hackour.game.test;
+
+import hackour.game.*;
+
+import javax.swing.*;
+import java.awt.Graphics;
+
+import java.util.Iterator;
+
+public class SampleGUI extends JFrame{
+	private GameCanvas gc;
+	private Game ga;
+	public SampleGUI(){
+		ga = new Game();
+		ga.AddObject( new SquareObject() );
+		gc = new GameCanvas(){
+			@Override
+			public void paint( Graphics g ){
+				Iterator<GObject> it = ga.GetObjectIterator();
+				while( it.hasNext() ){
+					GObject go = it.next();
+					if( go instanceof SquareObject ){
+						SquareObject so = (SquareObject) go;
+						g.drawRect( so.getX(), so.getY(), so.getSide(), so.getSide() );
+					}
+				}
+			}
+		};
+	}
+}

@@ -1,0 +1,9 @@
+package hackour.game;
+
+import javax.swing.JComponent;
+import java.awt.Graphics;
+
+public abstract class GameCanvas extends JComponent{
+	@Override
+	public abstract void paint(Graphics g);
+}

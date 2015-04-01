@@ -1,0 +1,88 @@
+package hackour.game;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import java.awt.Point;
+
+public class CollisionDetector{
+	public static final int TOP = 60;
+	public static final int RIGHT = 61;
+	public static final int BOTTOM = 62;
+	public static final int LEFT = 63;
+	
+	public static void CheckCollisions( Iterator<PhysicalObject> poi ){
+		ArrayList<PhysicalObject> statics = new ArrayList<>();
+		ArrayList<PhysicalObject> entities = new ArrayList<>();
+		
+		while( poi.hasNext() ){
+			PhysicalObject obj = poi.next();
+			if( obj.getType() == PhysicalObject.TYPE_ENTITY ){
+				entities.add( obj );
+			}else if( obj.getType() == PhysicalObject.TYPE_STATIC ){
+				statics.add( obj );
+			}else;
+		}
+		for( PhysicalObject entity : entities ){
+			for( PhysicalObject staticobj : statics ){
+				int direction = CollisionDetector.CheckCollision( entity.getX(), entity.getY(), staticobj.getX(), staticobj.getY() );
+				entity.onCollision( staticobj, direction );
+			}
+		}
+	}
+	
+	public static int CheckCollision( int x1, int y1, int x2, int y2 ){
+		int ent_far_x = x1 + HackourGame.UNIT_SIZE;
+		int ent_x = x1;
+		int stat_far_x = x2 + HackourGame.UNIT_SIZE;
+		int stat_x = x2;
+		
+		int ent_far_y = y1 + HackourGame.UNIT_SIZE;
+		int ent_y = y1;
+		int stat_far_y = y2 + HackourGame.UNIT_SIZE;
+		int stat_y = y2;
+		
+		int direction = 0;
+		if( ent_far_x > stat_x && ent_x < stat_far_x && ent_far_y > stat_y && ent_y < stat_far_y ){
+			
+			Point center = new Point( stat_x + ( HackourGame.UNIT_SIZE / 2 ), stat_y + ( HackourGame.UNIT_SIZE / 2 ) );
+			
+			double fromleft = CollisionDetector.distance( ent_far_x, ent_y + (HackourGame.UNIT_SIZE / 2), center.getX(), center.getY() );
+			double fromright = CollisionDetector.distance( ent_x, ent_y + (HackourGame.UNIT_SIZE / 2), center.getX(), center.getY() );
+			double fromtop = CollisionDetector.distance( ent_x + (HackourGame.UNIT_SIZE / 2), ent_far_y, center.getX(), center.getY() );
+			double frombottom = CollisionDetector.distance( ent_x + (HackourGame.UNIT_SIZE / 2), ent_y, center.getX(), center.getY() );
+			
+			double[] distances = { fromleft, fromright, fromtop, frombottom };
+			
+			double max = CollisionDetector.max( distances );
+			if( max == fromleft ){
+				direction = CollisionDetector.LEFT;
+			}else if( max == fromright ){
+				direction = CollisionDetector.RIGHT;
+			}else if( max == fromtop ){
+				direction = CollisionDetector.TOP;
+			}else if( max == frombottom ){
+				direction = CollisionDetector.BOTTOM;
+			}else;
+		}
+		
+		return direction;
+	}
+	
+	public static double distance( double x1, double y1, double x2, double y2 ){
+		double exp1 = (x2 - x1)*(x2 - x1);
+		double exp2 = (y2 - y1)*(y2 - y1);
+		double exp3 = exp1 + exp2;
+		return Math.sqrt( exp3 );
+	}
+	
+	private static double max( double[] set ){
+		double max = set[0];
+		for( double i : set ){
+			if( i > max ){
+				max = i;
+			}
+		}
+		return max;
+	}
+}

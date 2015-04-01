@@ -1,0 +1,28 @@
+package hackour.game.test;
+
+import hackour.game.*;
+
+public class SampleGame extends Game{
+	private GObject g = new TickPrinter();
+	
+	public SampleGame(){
+		super();
+		AddObject( g );
+		ticker.start();
+	}
+	
+	private Thread ticker = new Thread(){
+		public void run(){
+			while(true){
+				tick();
+				try{
+					Thread.sleep(500);
+				}catch(Exception e){}
+			}
+		}
+	};
+	
+	public static void main(String[] args){
+		new SampleGame();
+	}
+}
