@@ -11,6 +11,27 @@ public class CollisionDetector{
 	public static final int BOTTOM = 62;
 	public static final int LEFT = 63;
 	
+	public static void CheckCollisionsFor( PhysicalObject entity, ArrayList<PhysicalObject> stats ){
+		for( PhysicalObject stat : stats ){
+			int direction = CollisionDetector.CheckCollision( entity.getX(), entity.getY(), entity.getWidth(), entity.getHeight(), stat.getX(), stat.getY(), stat.getWidth(), stat.getHeight() );
+			entity.onCollision( stat, direction );
+		}
+	}
+	public static int CheckCollisionsFor_Direction( PhysicalObject entity, ArrayList<PhysicalObject> stats ){
+		for( PhysicalObject stat : stats ){
+			int direction = CollisionDetector.CheckCollision( entity.getX(), entity.getY(), entity.getWidth(), entity.getHeight(), stat.getX(), stat.getY(), stat.getWidth(), stat.getHeight() );
+			if( direction != 0 ) return direction;
+		}
+		return 0;
+	}
+	public static PhysicalObject CheckCollisionsFor_Object( PhysicalObject entity, ArrayList<PhysicalObject> stats ){
+		for( PhysicalObject stat : stats ){
+			int direction = CollisionDetector.CheckCollision( entity.getX(), entity.getY(), entity.getWidth(), entity.getHeight(), stat.getX(), stat.getY(), stat.getWidth(), stat.getHeight() );
+			if( direction != 0 ) return stat;
+		}
+		return null;
+	}
+	
 	public static void CheckCollisions( Iterator<PhysicalObject> poi ){
 		ArrayList<PhysicalObject> statics = new ArrayList<>();
 		ArrayList<PhysicalObject> entities = new ArrayList<>();
@@ -24,29 +45,23 @@ public class CollisionDetector{
 			}else;
 		}
 		for( PhysicalObject entity : entities ){
-			for( PhysicalObject staticobj : statics ){
-				int direction = CollisionDetector.CheckCollision( entity.getX(), entity.getY(), staticobj.getX(), staticobj.getY() );
-				entity.onCollision( staticobj, direction );
-			}
+			CollisionDetector.CheckCollisionsFor( entity, statics );
 		}
 	}
 	
-	public static int CheckCollision( int x1, int y1, int x2, int y2 ){
-		int ent_far_x = x1 + HackourGame.UNIT_SIZE;
+	public static int CheckCollision( int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2 ){
+		int ent_far_x = x1 + w1;
 		int ent_x = x1;
-		int stat_far_x = x2 + HackourGame.UNIT_SIZE;
+		int stat_far_x = x2 + w2;
 		int stat_x = x2;
 		
-		int ent_far_y = y1 + HackourGame.UNIT_SIZE;
+		int ent_far_y = y1 + h1;
 		int ent_y = y1;
-		int stat_far_y = y2 + HackourGame.UNIT_SIZE;
+		int stat_far_y = y2 + h2;
 		int stat_y = y2;
 		
 		int direction = 0;
 		if( ent_far_x > stat_x && ent_x < stat_far_x && ent_far_y > stat_y && ent_y < stat_far_y ){
-			
-			Point center = new Point( stat_x + ( HackourGame.UNIT_SIZE / 2 ), stat_y + ( HackourGame.UNIT_SIZE / 2 ) );
-			
 			int fromleft = Math.abs( ent_far_x - stat_x );
 			int fromright = Math.abs( ent_x - stat_far_x );
 			int fromtop = Math.abs( ent_far_y - stat_y );
@@ -54,14 +69,14 @@ public class CollisionDetector{
 			
 			int[] distances = { fromleft, fromright, fromtop, frombottom };
 			
-			int max = CollisionDetector.max( distances );
-			if( max == fromleft ){
+			int min = CollisionDetector.min( distances );
+			if( min == fromleft ){
 				direction = CollisionDetector.LEFT;
-			}else if( max == fromright ){
+			}else if( min == fromright ){
 				direction = CollisionDetector.RIGHT;
-			}else if( max == fromtop ){
+			}else if( min == fromtop ){
 				direction = CollisionDetector.TOP;
-			}else if( max == frombottom ){
+			}else if( min == frombottom ){
 				direction = CollisionDetector.BOTTOM;
 			}else;
 		}
@@ -69,10 +84,10 @@ public class CollisionDetector{
 		return direction;
 	}
 	
-	private static int max( int[] set ){
+	private static int min( int[] set ){
 		int max = set[0];
 		for( int i : set ){
-			if( i > max ){
+			if( i < max ){
 				max = i;
 			}
 		}

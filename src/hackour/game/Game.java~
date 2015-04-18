@@ -34,6 +34,18 @@ public class Game extends Thread{
 		return worldObjects.iterator();
 	}
 	
+	public ArrayList<PhysicalObject> GetObjectsOfType( int type ){
+		ArrayList<PhysicalObject> out = new ArrayList<>();
+		for( GObject go : worldObjects ){
+			if( go instanceof PhysicalObject ){
+				if( ( (PhysicalObject) go ).getType() == type ){
+					out.add( (PhysicalObject) go );
+				}
+			}
+		}
+		return out;
+	}
+	
 	public void AddObject( GObject obj ){
 		worldObjects.add( obj );
 	}

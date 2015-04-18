@@ -47,14 +47,14 @@ public class CollisionDetector{
 			
 			Point center = new Point( stat_x + ( HackourGame.UNIT_SIZE / 2 ), stat_y + ( HackourGame.UNIT_SIZE / 2 ) );
 			
-			double fromleft = CollisionDetector.distance( ent_far_x, ent_y + (HackourGame.UNIT_SIZE / 2), center.getX(), center.getY() );
-			double fromright = CollisionDetector.distance( ent_x, ent_y + (HackourGame.UNIT_SIZE / 2), center.getX(), center.getY() );
-			double fromtop = CollisionDetector.distance( ent_x + (HackourGame.UNIT_SIZE / 2), ent_far_y, center.getX(), center.getY() );
-			double frombottom = CollisionDetector.distance( ent_x + (HackourGame.UNIT_SIZE / 2), ent_y, center.getX(), center.getY() );
+			int fromleft = Math.abs( ent_far_x - stat_x );
+			int fromright = Math.abs( ent_x - stat_far_x );
+			int fromtop = Math.abs( ent_far_y - stat_y );
+			int frombottom = Math.abs( ent_y - stat_far_y );
 			
-			double[] distances = { fromleft, fromright, fromtop, frombottom };
+			int[] distances = { fromleft, fromright, fromtop, frombottom };
 			
-			double max = CollisionDetector.max( distances );
+			int max = CollisionDetector.max( distances );
 			if( max == fromleft ){
 				direction = CollisionDetector.LEFT;
 			}else if( max == fromright ){
@@ -69,16 +69,9 @@ public class CollisionDetector{
 		return direction;
 	}
 	
-	public static double distance( double x1, double y1, double x2, double y2 ){
-		double exp1 = (x2 - x1)*(x2 - x1);
-		double exp2 = (y2 - y1)*(y2 - y1);
-		double exp3 = exp1 + exp2;
-		return Math.sqrt( exp3 );
-	}
-	
-	private static double max( double[] set ){
-		double max = set[0];
-		for( double i : set ){
+	private static int max( int[] set ){
+		int max = set[0];
+		for( int i : set ){
 			if( i > max ){
 				max = i;
 			}

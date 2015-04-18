@@ -8,8 +8,9 @@ public class SquareObject extends PhysicalObject{
 	private boolean first_jump = false;
 	
 	private GameCanvas container;
+	private Game ga;
 	
-	private SquareObject( int side, int x, int y, GameCanvas container ){
+	private SquareObject( int side, int x, int y, GameCanvas container, Game g ){
 		super();
 		this.side = side;
 		this.x = x;
@@ -19,12 +20,13 @@ public class SquareObject extends PhysicalObject{
 		velocityY = 0;
 		
 		this.container = container;
+		ga = g;
 	}
-	public SquareObject( int x, int y, GameCanvas container ){
-		this( HackourGame.UNIT_SIZE, x, y, container );
+	public SquareObject( int x, int y, GameCanvas container, Game g ){
+		this( HackourGame.UNIT_SIZE, x, y, container, g );
 	}
-	public SquareObject( GameCanvas container ){
-		this(0,0, container);
+	public SquareObject( GameCanvas container, Game g ){
+		this(0,0, container, g);
 	}
 	
 	private boolean doGravity = true;
@@ -51,9 +53,9 @@ public class SquareObject extends PhysicalObject{
 			}
 			
 			doGravity = true;
-			
 			x += velocityX;
 			y += velocityY;
+			
 		}
 	}
 	
@@ -72,6 +74,13 @@ public class SquareObject extends PhysicalObject{
 	}
 	public boolean getJumping(){
 		return jumping;
+	}
+	public void goHorizontalDirection( int direction, int velX ){
+		for( PhysicalObject obj : ga.GetObjectsOfType( PhysicalObject.TYPE_STATIC ) ){
+			if( CollisionDetector.CheckCollision( this.getX(), this.getY(), obj.getX(), obj.getY() ) != direction ){
+				velocityX = velX;
+			}
+		}
 	}
 	
 	public void setVelocityX( int vel ){
@@ -102,13 +111,15 @@ public class SquareObject extends PhysicalObject{
 	}
 	public void onCollision( PhysicalObject other, int direction ){
 		System.out.println( direction );
-		if( direction == CollisionDetector.TOP ){
+		if( direction == CollisionDetector.BOTTOM ){
 			setVelocityY( 0 );
 			first_jump = false;
 			setJumping( false );
 			doGravity = false;
 		}else if( direction == CollisionDetector.LEFT || direction == CollisionDetector.RIGHT ){
 			setVelocityX( 0 );
-		}
+		}else if( direction == CollisionDetector.TOP ){
+			setVelocityY( 0 );
+		}else;
 	}
 }

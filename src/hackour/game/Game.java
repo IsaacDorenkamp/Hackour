@@ -6,6 +6,16 @@ import java.awt.Toolkit;
 
 public class Game extends Thread{
 	private ArrayList<GObject> worldObjects = new ArrayList<>();
+	private ArrayList<PhysicalObject> entities = new ArrayList<>();
+	private ArrayList<PhysicalObject> stats = new ArrayList<>();
+	
+	public ArrayList<PhysicalObject> getStatics() {
+		return stats;
+	}
+	public ArrayList<PhysicalObject> getEntities() {
+		return entities;
+	}
+	
 	private int tickInterval;
 	
 	public Game( int tickInterval ){
@@ -48,6 +58,12 @@ public class Game extends Thread{
 	
 	public void AddObject( GObject obj ){
 		worldObjects.add( obj );
+		
+		if( obj instanceof PhysicalObject ){
+			int type = ( ( PhysicalObject ) obj ).getType();
+			if( type == PhysicalObject.TYPE_ENTITY ) entities.add( (PhysicalObject) obj );
+			if( type == PhysicalObject.TYPE_STATIC ) stats.add( (PhysicalObject) obj );
+		}
 	}
 	public void RemoveObject( GObject obj ){
 		int i = 0;
