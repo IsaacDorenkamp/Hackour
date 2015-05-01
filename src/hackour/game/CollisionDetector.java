@@ -62,9 +62,9 @@ public class CollisionDetector{
 		
 		int direction = 0;
 		if( ent_far_x > stat_x && ent_x < stat_far_x && ent_far_y > stat_y && ent_y < stat_far_y ){
-			int fromleft = Math.abs( ent_far_x - stat_x );
+			int fromleft = Math.abs( stat_x - ent_far_x );
 			int fromright = Math.abs( ent_x - stat_far_x );
-			int fromtop = Math.abs( ent_far_y - stat_y );
+			int fromtop = Math.abs( stat_y - ent_far_y );
 			int frombottom = Math.abs( ent_y - stat_far_y );
 			
 			int[] distances = { fromleft, fromright, fromtop, frombottom };
@@ -85,12 +85,10 @@ public class CollisionDetector{
 	}
 	
 	private static int min( int[] set ){
-		int max = set[0];
+		int min = set[0];
 		for( int i : set ){
-			if( i < max ){
-				max = i;
-			}
+			min = Math.min( min, i );
 		}
-		return max;
+		return min;
 	}
 }

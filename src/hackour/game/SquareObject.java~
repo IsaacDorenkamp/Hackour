@@ -1,5 +1,8 @@
 package hackour.game;
 
+import java.awt.Graphics;
+import java.util.ArrayList;
+
 public class SquareObject extends PhysicalObject{
 	//NOTE: Position and size attributes are part of PhysicalObject
 	private int side;
@@ -7,12 +10,16 @@ public class SquareObject extends PhysicalObject{
 	private boolean jumping = false;
 	private boolean first_jump = false;
 	
+	private boolean adjusted = false;
+	
 	private GameCanvas container;
 	private Game ga;
 	
 	private SquareObject( int side, int x, int y, GameCanvas container, Game g ){
 		super();
 		this.side = side;
+		width = side;
+		height = side;
 		this.x = x;
 		this.y = y;
 		
@@ -29,34 +36,143 @@ public class SquareObject extends PhysicalObject{
 		this(0,0, container, g);
 	}
 	
+	@Override
+	public void paint( Graphics gfx ){
+		gfx.fillRect( x, y, side, side );
+	}
+	
 	private boolean doGravity = true;
+	private boolean onPlatform = false;
 	
 	public void doTick( Game g ){
-		if( ( x  + getSide() >= container.getWidth() && velocityX > 0 ) || ( x <= 0 && velocityX < 0 ) ){
-			velocityX = 0;
-		}else if( (y + getSide() >= container.getHeight() && velocityY > 0 ) || (y <= 0  && velocityY < 0 ) ){
-			velocityY = 0;
-			if( first_jump ){
-				setJumping( false );
-				first_jump = false;
+		ArrayList<PhysicalObject> stats = ga.getStatics();
+		
+		boolean base_y_cond = (y + getSide() >= container.getHeight() );
+		
+		/*if( !base_y_cond && ( CollisionDetector.CheckCollisionsFor_Direction(this, stats) == 0 || adjusted ) ){
+			onPlatform = false;
+		}*/
+		
+		doGravity = !onPlatform;
+		
+		// Gravity right here.
+		if( doGravity ){
+			velocityY = PhysicsModule.calculate_gravity( this );
+		}
+		
+		System.out.println("onPlatform: " + String.valueOf(onPlatform));
+		
+		boolean left_x = ( x <= 0 );
+		boolean right_x = ( ( x + getSide() ) >= container.getWidth() );
+		if( left_x || right_x ){
+			if( ( left_x && velocityX < 0 ) || ( right_x && velocityX > 0 ) ) velocityX = 0;
+		}
+		if( base_y_cond || y <= 0 ){
+			if( y <= 0 && velocityY < 0 || base_y_cond && velocityY > 0 ){
+				velocityY = 0;
 			}
-		}else{
-			if( y + getSide() + velocityY > container.getHeight() ){
-				velocityY = ( container.getHeight() - (y + getSide() ) );
+			if( base_y_cond && velocityY > 0 ){
+				onGroundHit();
 			}
-			
-			// Gravity right here.
-			if( doGravity ){
-				if( ! ( y + getSide() >= container.getHeight() ) ){
-					velocityY = PhysicsModule.calculate_gravity( this );
-				}
-			}
-			
-			doGravity = true;
+		}else;
+		
+		if( !adjusted ){
 			x += velocityX;
 			y += velocityY;
-			
+		}else adjusted = false;
+		
+		CollisionDetector.CheckCollisionsFor( this, stats );
+		if( !onPlatform ) adjusted = Lookahead();
+		
+		if( y + getSide() + velocityY > container.getHeight() ){
+			y = ( container.getHeight() - side );
+			onGroundHit();
 		}
+	}
+	
+	private void onGroundHit(){
+		if( first_jump ){
+			setJumping( false );
+			first_jump = false;
+		}
+		onPlatform = true;
+		velocityY = 0;
+		
+		System.out.println("HIT");
+	}
+	private boolean Lookahead(){
+		ArrayList<PhysicalObject> stats = ga.getStatics();
+		
+		SquareObject lookahead = new SquareObject( x + velocityX, y + velocityY, container, ga );
+		
+		PhysicalObject collided = CollisionDetector.CheckCollisionsFor_Object(lookahead, stats);
+		if( collided == null ) return false;
+		
+		int direction = 0;
+		
+		int cx = collided.getX();
+		int cw = collided.getWidth();
+		int cy = collided.getY();
+		int ch = collided.getHeight();
+		
+		int nx = lookahead.getX();
+		int nw = lookahead.getWidth();
+		int ny = lookahead.getY();
+		int nh = lookahead.getHeight();
+		
+		int fl = Math.abs( cx - ( nx + nw ) );
+		int fr = Math.abs( nx - ( cx + cw) );
+		int ft = Math.abs( cy - ( ny + nh )  );
+		int fb = Math.abs( ny - ( cy + ch ) );
+		
+		int[] vals = { fl, fr, ft, fb };
+		
+		int min = fl + fr + ft + fb; //Guaranteed to be larger than any single of the numbers
+		for( int val : vals ){
+			min = Math.min( min, val );
+		}
+		
+		System.out.println( min );
+		
+		if( min == fl ) direction = CollisionDetector.LEFT;
+		else if( min == fr ) direction = CollisionDetector.RIGHT;
+		else if( min == ft ) direction = CollisionDetector.TOP;
+		else if( min == fb ) direction = CollisionDetector.BOTTOM;
+		else return false;
+		
+		System.out.println( getDirection( direction ) );
+		
+		if( direction == CollisionDetector.TOP ){
+			y = cy - height;
+			onGroundHit();
+			return true;
+		}else if( direction == CollisionDetector.BOTTOM ){
+			y = cy + ch;
+			return true;
+		}else;
+		
+		if( direction == CollisionDetector.RIGHT ){
+			x = cx + cw;
+			return true;
+		}else if( direction == CollisionDetector.LEFT ){
+			x = cx + width;
+			return true;
+		}else;
+		
+		return false;
+	}
+	private String getDirection( int d ){
+		switch(d){
+		case CollisionDetector.RIGHT:
+			return "RIGHT";
+		case CollisionDetector.LEFT:
+			return "LEFT";
+		case CollisionDetector.TOP:
+			return "TOP";
+		case CollisionDetector.BOTTOM:
+			return "BOTTOM";
+		}
+		return "NONE";
 	}
 	
 	public void jump(){
@@ -68,6 +184,7 @@ public class SquareObject extends PhysicalObject{
 			setVelocityY( -20 );
 		}
 		doGravity = true;
+		onPlatform = false;
 	}
 	public void setJumping( boolean j ){
 		jumping = j;
@@ -76,11 +193,14 @@ public class SquareObject extends PhysicalObject{
 		return jumping;
 	}
 	public void goHorizontalDirection( int direction, int velX ){
+		boolean entered_loop = false;
 		for( PhysicalObject obj : ga.GetObjectsOfType( PhysicalObject.TYPE_STATIC ) ){
-			if( CollisionDetector.CheckCollision( this.getX(), this.getY(), obj.getX(), obj.getY() ) != direction ){
+			if( CollisionDetector.CheckCollision( x, y, width, height, obj.getX(), obj.getY(), obj.getWidth(), obj.getHeight() ) != direction ){
 				velocityX = velX;
 			}
+			if( !entered_loop ) entered_loop = true;
 		}
+		if( !entered_loop ) velocityX = velX;
 	}
 	
 	public void setVelocityX( int vel ){
@@ -110,12 +230,8 @@ public class SquareObject extends PhysicalObject{
 		this.side = s;
 	}
 	public void onCollision( PhysicalObject other, int direction ){
-		System.out.println( direction );
 		if( direction == CollisionDetector.BOTTOM ){
-			setVelocityY( 0 );
-			first_jump = false;
-			setJumping( false );
-			doGravity = false;
+			if( velocityY > 0 ) onGroundHit();
 		}else if( direction == CollisionDetector.LEFT || direction == CollisionDetector.RIGHT ){
 			setVelocityX( 0 );
 		}else if( direction == CollisionDetector.TOP ){

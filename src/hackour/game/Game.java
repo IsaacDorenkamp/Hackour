@@ -6,14 +6,18 @@ import java.awt.Toolkit;
 
 public class Game extends Thread{
 	private ArrayList<GObject> worldObjects = new ArrayList<>();
-	private ArrayList<PhysicalObject> entities = new ArrayList<>();
-	private ArrayList<PhysicalObject> stats = new ArrayList<>();
+	private ArrayList<PhysicalObject> entities = new ArrayList<>();
+	private ArrayList<PhysicalObject> stats = new ArrayList<>();
 	
-	public ArrayList<PhysicalObject> getStatics() {
-		return stats;
-	}
-	public ArrayList<PhysicalObject> getEntities() {
-		return entities;
+	private GameCanvas canv = null;
+
+	
+	public ArrayList<PhysicalObject> getStatics() {
+		return stats;
+	}
+
+	public ArrayList<PhysicalObject> getEntities() {
+		return entities;
 	}
 	
 	private int tickInterval;
@@ -22,11 +26,16 @@ public class Game extends Thread{
 		this.tickInterval = tickInterval;
 	}
 	
-	protected void tick(){
+	public void setCanvas(GameCanvas gc){
+		canv = gc;
+	}
+	
+	public void tick(){
 		for( GObject toTick : worldObjects ){
 			toTick.doTick( this );
 		}
 		
+		canv.repaint();
 		Toolkit.getDefaultToolkit().sync();
 	}
 	

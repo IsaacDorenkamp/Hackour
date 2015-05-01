@@ -1,9 +1,12 @@
 package hackour.game;
 
+import hackour.levels.*;
+
 import javax.swing.*;
 import java.awt.Graphics;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
+import java.awt.Insets;
 
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -15,22 +18,30 @@ public class HackourGame extends JFrame implements KeyListener{
 	
 	public static final int UNIT_SIZE = 15;
 	public static final int NORMAL_VELOCITY = 4;
-	public static final int WINDOW_SIZE = 500;
+	
+	public static final int NORTH_Y = 0;
+	public static final int SOUTH_Y = 600;
+	public static final int WEST_X  = 0;
+	public static final int EAST_X  = 1050;
+	
+	public static final int WINDOW_HEIGHT = 600;
+	public static final int WINDOW_WIDTH =  1050;
 	
 	private void CreateGUI(){
 		add( gc );
 		setTitle( "Hackour" );
 		setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-		setSize( HackourGame.WINDOW_SIZE, HackourGame.WINDOW_SIZE );
 		setVisible(true);
+		
+		Insets insets = getInsets();
+		setSize( HackourGame.WINDOW_WIDTH + insets.left + insets.right, HackourGame.WINDOW_HEIGHT + insets.bottom + insets.top );
 		
 		addKeyListener( this );
 		
-		Block b = new Block( HackourGame.UNIT_SIZE * 2, gc.getHeight() - ( HackourGame.UNIT_SIZE * 3 ), HackourGame.UNIT_SIZE * 4, HackourGame.UNIT_SIZE );
+		Block b = new Block( HackourGame.UNIT_SIZE * 2, HackourGame.SOUTH_Y - ( HackourGame.UNIT_SIZE * 3 ), HackourGame.UNIT_SIZE * 4, HackourGame.UNIT_SIZE );
 		
 		ga.AddObject( sqo );
 		ga.AddObject( b );
-		ga.AddObject( gc ); //GameCanvas paints every tick. It must be added to the Game object so that the game object will tick it.
 		
 		ga.start();
 		
@@ -43,6 +54,8 @@ public class HackourGame extends JFrame implements KeyListener{
 		gc = new GameCanvas(){
 			@Override
 			public void CanvasPaint( Graphics gfx ){
+				gfx.drawRect( HackourGame.WEST_X, HackourGame.NORTH_Y, HackourGame.WEST_X + HackourGame.EAST_X, HackourGame.NORTH_Y + HackourGame.SOUTH_Y );
+				
 				Iterator<GObject> it = ga.GetObjectIterator();
 				while( it.hasNext() ){
 					GObject go = it.next();
@@ -54,9 +67,15 @@ public class HackourGame extends JFrame implements KeyListener{
 				}
 			}
 		};
+		ga.setCanvas( gc );
 		sqo = new SquareObject( gc, ga );
 		
 		CreateGUI();
+	}
+	
+	public void LoadLayer(Layer l){
+		ga.RemoveObject(sqo);
+		
 	}
 	
 	//Key Events
@@ -83,8 +102,10 @@ public class HackourGame extends JFrame implements KeyListener{
 		
 		switch( keyCode ){
 		case KeyEvent.VK_LEFT:
+			if( sqo.getVelocityX() < 0 ) sqo.setVelocityX( 0 );
+			break;
 		case KeyEvent.VK_RIGHT:
-			sqo.setVelocityX( 0 );
+			if( sqo.getVelocityX() > 0 ) sqo.setVelocityX( 0 );
 			break;
 		default:
 			break;
