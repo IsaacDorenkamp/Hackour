@@ -50,6 +50,9 @@ public class CollisionDetector{
 	}
 	
 	public static int CheckCollision( int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2 ){
+		x2 = x2 * HackourGame.UNIT_SIZE; //Pixel x/y
+		y2 = y2 * HackourGame.UNIT_SIZE;
+		
 		int ent_far_x = x1 + w1;
 		int ent_x = x1;
 		int stat_far_x = x2 + w2;
@@ -85,12 +88,10 @@ public class CollisionDetector{
 	}
 	
 	private static int min( int[] set ){
-		int max = set[0];
+		int min = set[0];
 		for( int i : set ){
-			if( i < max ){
-				max = i;
-			}
+			min = Math.min( min, i );
 		}
-		return max;
+		return min;
 	}
 }

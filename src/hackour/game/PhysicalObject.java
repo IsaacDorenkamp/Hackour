@@ -52,4 +52,6 @@ public abstract class PhysicalObject implements GObject{
 	
 	public abstract void onCollision( PhysicalObject other, int direction );
 	public abstract void paint( Graphics gfx );
+	
+	public abstract void interact();
 }

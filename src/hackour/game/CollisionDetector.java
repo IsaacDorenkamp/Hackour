@@ -11,10 +11,18 @@ public class CollisionDetector{
 	public static final int BOTTOM = 62;
 	public static final int LEFT = 63;
 	
+	public static boolean OnBlock( int x, int y, Game g ){
+		PhysicalObject obj = g.get_unit(x,y + 1);
+		if( obj == null ) return false;
+		
+		if( obj.getType() == PhysicalObject.TYPE_STATIC ) return true;
+		return false;
+	}
+	
 	public static void CheckCollisionsFor( PhysicalObject entity, ArrayList<PhysicalObject> stats ){
 		for( PhysicalObject stat : stats ){
 			int direction = CollisionDetector.CheckCollision( entity.getX(), entity.getY(), entity.getWidth(), entity.getHeight(), stat.getX(), stat.getY(), stat.getWidth(), stat.getHeight() );
-			entity.onCollision( stat, direction );
+			if( direction != 0 ) entity.onCollision( stat, direction );
 		}
 	}
 	public static int CheckCollisionsFor_Direction( PhysicalObject entity, ArrayList<PhysicalObject> stats ){
@@ -50,6 +58,9 @@ public class CollisionDetector{
 	}
 	
 	public static int CheckCollision( int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2 ){
+		x2 = x2 * HackourGame.UNIT_SIZE; //Pixel x/y
+		y2 = y2 * HackourGame.UNIT_SIZE;
+		
 		int ent_far_x = x1 + w1;
 		int ent_x = x1;
 		int stat_far_x = x2 + w2;

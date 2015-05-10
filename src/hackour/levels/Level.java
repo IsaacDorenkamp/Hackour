@@ -10,4 +10,8 @@ public class Level{
 	public void AddLayer(Layer l){
 		layers.add(l);
 	}
+	
+	public ArrayList<Layer> GetLayers(){
+		return new ArrayList<Layer>(layers);
+	}
 }

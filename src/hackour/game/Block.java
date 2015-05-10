@@ -21,8 +21,9 @@ public class Block extends PhysicalObject{
 	
 	@Override
 	public void paint( Graphics gfx ){
-		gfx.fillRect( x, y, width, height );
+		gfx.fillRect( x * HackourGame.UNIT_SIZE, y * HackourGame.UNIT_SIZE, width, height );
 	}
 	
 	public void onCollision( PhysicalObject other, int direction ){}
+	public void interact(){}
 }

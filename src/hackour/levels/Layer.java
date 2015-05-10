@@ -17,4 +17,10 @@ public class Layer{
 	public void AddObject( PhysicalObject po ){
 		objs.add( po );
 	}
+	public ArrayList<PhysicalObject> GetObjects(){
+		return new ArrayList<PhysicalObject>(objs);
+	}
+	
+	public int GetSpawnX(){ return spawn_x; }
+	public int GetSpawnY(){ return spawn_y; }
 }
