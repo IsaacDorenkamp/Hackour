@@ -9,16 +9,16 @@ public class SquareObject extends PhysicalObject{
 	//NOTE: Position and size attributes are part of PhysicalObject
 	private int side;
 	
-	private boolean jumping = false;
-	private boolean first_jump = false;
+	protected boolean jumping = false;
+	protected boolean first_jump = false;
 	
-	private boolean adjusted = false;
+	protected boolean adjusted = false;
 	
-	private boolean edit_mode = false;
-	private boolean noClip = false;
+	protected boolean edit_mode = false;
+	protected boolean noClip = false;
 	
-	private GameCanvas container;
-	private Game ga;
+	protected GameCanvas container;
+	protected Game ga;
 	
 	private SquareObject( int side, int x, int y, GameCanvas container, Game g ){
 		super();
@@ -57,17 +57,19 @@ public class SquareObject extends PhysicalObject{
 	
 	public int[] CenterUnit(){
 		int[] coords = new int[2];
-		coords[0] = (x - (x % HackourGame.UNIT_SIZE)) / HackourGame.UNIT_SIZE;
-		coords[1] = (y - (y % HackourGame.UNIT_SIZE)) / HackourGame.UNIT_SIZE;
+		int usex = x + (int)Math.ceil(HackourGame.UNIT_SIZE / 2);
+		int usey = y + (int)Math.ceil(HackourGame.UNIT_SIZE / 2);
+		coords[0] = ( ( usex - (usex % HackourGame.UNIT_SIZE) ) / HackourGame.UNIT_SIZE) ;
+		coords[1] = ( ( usey - (usey % HackourGame.UNIT_SIZE) ) / HackourGame.UNIT_SIZE);
 		return coords;
 	}
 	
 	public void doTick( Game g ){
 		ArrayList<PhysicalObject> stats = ga.getStatics();
-		boolean base_y_cond = (y + getSide() >= HackourGame.WINDOW_HEIGHT );
+		boolean base_y_cond = (y + getSide() >= HackourGame.SOUTH_Y );
 		if( !edit_mode ){
 			int[] coords = CenterUnit();
-			if( !base_y_cond && ( !CollisionDetector.OnBlock( coords[0], coords[1], HackourGame.RUNNING_GAME) ) ){
+			if( !base_y_cond && ( !CollisionDetector.OnBlock( coords[0], coords[1], ga) ) ){
 				onPlatform = false;
 			}
 			
@@ -87,6 +89,7 @@ public class SquareObject extends PhysicalObject{
 		
 		if( !noClip ){
 			CollisionDetector.CheckCollisionsFor( this, stats );
+			CollisionDetector.CheckCollisionsFor( this, ga.getEntities() );
 			if( !onPlatform ) Lookahead();
 		}
 		
@@ -106,30 +109,22 @@ public class SquareObject extends PhysicalObject{
 		if( x + side + velocityX > HackourGame.EAST_X ){
 			x = HackourGame.EAST_X - width;
 		}
-		if( x + velocityY < HackourGame.WEST_X ){
+		if( x + velocityX < HackourGame.WEST_X ){
 			x = 0;
 		}
 	}
 	
-	private void checkBounds(boolean base_y_cond){
+	protected void checkBounds(boolean base_y_cond){
 		boolean left_x = ( x <= 0 );
 		boolean right_x = ( ( x + getSide() ) >= HackourGame.EAST_X );
 		if( left_x || right_x ){
 			if( ( left_x && velocityX < 0 ) || ( right_x && velocityX > 0 ) ) velocityX = 0;
 		}
-		if( base_y_cond || y <= 0 ){
-			if( y <= 0 && velocityY < 0 || base_y_cond && velocityY > 0 ){
+		if( base_y_cond || y < 0 ){
+			if( y < 0 && velocityY < 0 || base_y_cond && velocityY > 0 ){
 				velocityY = 0;
 			}
 			if( base_y_cond && velocityY > 0 ){
-				onGroundHit();
-			}
-		}else;
-		if( x + getSide() >= HackourGame.EAST_X || x <= 0 ){
-			if( x <= 0 && velocityX < 0 || x + getSide() >= HackourGame.EAST_X && velocityX > 0 ){
-				velocityX = 0;
-			}
-			if( x <= 0 && velocityX > 0 ){
 				onGroundHit();
 			}
 		}else;
@@ -156,7 +151,7 @@ public class SquareObject extends PhysicalObject{
 		return edit_mode;	
 	}
 	
-	private void onGroundHit(){
+	protected void onGroundHit(){
 		if( first_jump ){
 			setJumping( false );
 			first_jump = false;
@@ -165,52 +160,27 @@ public class SquareObject extends PhysicalObject{
 		velocityY = 0;
 	}
 	
-	private boolean CheckHiddenEdge( int x, int y, int edge ){
-		int tox = 0;
-		int toy = 0;
-		
-		if( edge == CollisionDetector.LEFT ) tox = -1;
-		else if( edge == CollisionDetector.RIGHT ) tox = 1;
-		else if( edge == CollisionDetector.TOP ) toy = -1;
-		else if( edge == CollisionDetector.BOTTOM ) toy = 1;
-		else;
-		
-		if( x + tox < 0 || x + tox >= HackourGame.UNITS_WIDTH ){
-			return false;
-		}
-		if( y + toy < 0 || y + toy >= HackourGame.UNITS_HEIGHT ){
-			return false;
-		}
-		
-		return ga.check_unit( x + tox, y + toy, PhysicalObject.TYPE_STATIC );
-	}
 	private void Lookahead(){
 		SquareObject character = this;
 		SquareObject lookahead = new SquareObject( x + velocityX, y + velocityY, container, ga ){
 			public void onCollision( PhysicalObject other, int direction){
+				if( other.getType() != PhysicalObject.TYPE_STATIC ) return;
 				switch(direction){
 				case CollisionDetector.TOP:
-					if( CheckHiddenEdge( other.getX(), other.getY(), CollisionDetector.TOP ) ) return;
-					ga.devtools_log( String.format( "Old Y: %d", y ) );
-					ga.devtools_log( String.format( "other.getY(): %d", other.getY() ) );
-					ga.devtools_log( String.format( "character.getHeight(): %d", character.getHeight() ) );
+					if( CollisionDetector.CheckHiddenEdge( other.getX(), other.getY(), CollisionDetector.TOP ) ) return;
 					y = ( ( other.getY() * HackourGame.UNIT_SIZE ) - character.getHeight() );
-					ga.devtools_log( String.format( "New Y: %d", y ) );
 					break;
 				case CollisionDetector.BOTTOM:
-					if( CheckHiddenEdge( other.getX(), other.getY(), CollisionDetector.BOTTOM ) ) return;
+					if( CollisionDetector.CheckHiddenEdge( other.getX(), other.getY(), CollisionDetector.BOTTOM ) ) return;
 					y = ( ( other.getY() * HackourGame.UNIT_SIZE ) + other.getHeight() );
-					ga.devtools_log(String.valueOf(y));
 					break;
 				case CollisionDetector.LEFT:
-					if( CheckHiddenEdge( other.getX(), other.getY(), CollisionDetector.LEFT ) ) return;
+					if( CollisionDetector.CheckHiddenEdge( other.getX(), other.getY(), CollisionDetector.LEFT ) ) return;
 					x = ( ( other.getX() * HackourGame.UNIT_SIZE ) - character.getWidth() );
-					ga.devtools_log(String.valueOf(x));
 					break;
 				case CollisionDetector.RIGHT:
-					if( CheckHiddenEdge( other.getX(), other.getY(), CollisionDetector.RIGHT ) ) return;
+					if( CollisionDetector.CheckHiddenEdge( other.getX(), other.getY(), CollisionDetector.RIGHT ) ) return;
 					x = ( (other.getX() * HackourGame.UNIT_SIZE) + other.getWidth() );
-					ga.devtools_log(String.valueOf(x));
 					break;
 				default:
 					return;
@@ -236,7 +206,22 @@ public class SquareObject extends PhysicalObject{
 		}
 		return "NONE";
 	}
-	
+	protected boolean dead = false;
+	public boolean isDead(){
+		return dead;
+	}
+	public void setDead( boolean d ){
+		dead = d;
+	}
+	public void kill(){
+		dead = true;
+		ga.repaint();
+		try{
+			Thread.sleep( 750 );
+		}catch(Exception e){}
+		dead = false;
+		HackourGame.RUNNING_HOST.respawn();
+	}
 	public void jump(){
 		if( !jumping ){
 			if( first_jump )
@@ -258,14 +243,14 @@ public class SquareObject extends PhysicalObject{
 		return jumping;
 	}
 	public void goHorizontalDirection( int direction, int velX ){
-		boolean entered_loop = false;
-		for( PhysicalObject obj : ga.GetObjectsOfType( PhysicalObject.TYPE_STATIC ) ){
-			if( CollisionDetector.CheckCollision( x, y, width, height, obj.getX(), obj.getY(), obj.getWidth(), obj.getHeight() ) != direction ){
-				velocityX = velX;
-			}
-			if( !entered_loop ) entered_loop = true;
+		//direction = (direction == CollisionDetector.RIGHT) ? CollisionDetector.LEFT : CollisionDetector.RIGHT;
+		int ex_x = 1;
+		if( direction == CollisionDetector.LEFT ) ex_x = -1;
+		PhysicalObject obj = ga.get_unit( x + ex_x, y );
+		if( obj != null && x + velocityX >= obj.getX() ){
+			return;
 		}
-		if( !entered_loop ) velocityX = velX;
+		velocityX = velX;
 	}
 	
 	public void setVelocityX( int vel ){
@@ -298,17 +283,31 @@ public class SquareObject extends PhysicalObject{
 	public void onCollision( PhysicalObject other, int direction ){
 		if( other.getType() == PhysicalObject.TYPE_STATIC ){
 			if( direction == CollisionDetector.TOP ){
+				y = (other.getY() * HackourGame.UNIT_SIZE) - height;
 				if( !onPlatform && !PhysicsModule.INVERT_GRAVITY ) onGroundHit();
 				else setVelocityY(0);
 			}else if( direction == CollisionDetector.LEFT || direction == CollisionDetector.RIGHT ){
-				int nd = direction;
-				if( nd == CollisionDetector.RIGHT ) nd = CollisionDetector.LEFT;
-				else nd = CollisionDetector.RIGHT;
-				if(!CheckHiddenEdge(other.getX(),other.getY(),nd)) setVelocityX( 0 );
+				if( direction == CollisionDetector.LEFT ){
+					x = (other.getX() * HackourGame.UNIT_SIZE) - HackourGame.UNIT_SIZE;
+				}else{
+					x = (other.getX() * HackourGame.UNIT_SIZE ) + HackourGame.UNIT_SIZE;
+				}
+				setVelocityX( 0 );
 			}else if( direction == CollisionDetector.BOTTOM ){
 				if( PhysicsModule.INVERT_GRAVITY ) onGroundHit();
 				else setVelocityY(0);
 			}else;
+		}else if( other.getType() == PhysicalObject.TYPE_ENEMY && type != PhysicalObject.TYPE_ENEMY && !IsEditMode() ){
+			if( direction != 0 && direction != CollisionDetector.TOP ){
+				kill();
+			}
+			if( direction == CollisionDetector.TOP ){
+				if( other instanceof Enemy ){
+					( (Enemy) other ).kill();
+					if( jumping ) jumping = false;
+					jump();
+				}
+			}
 		}
 	}
 	

@@ -11,10 +11,35 @@ public class CollisionDetector{
 	public static final int BOTTOM = 62;
 	public static final int LEFT = 63;
 	
+	
+	public static boolean CheckHiddenEdge( int x, int y, int edge ){
+		int tox = 0;
+		int toy = 0;
+		
+		if( edge == CollisionDetector.LEFT ) tox = -1;
+		else if( edge == CollisionDetector.RIGHT ) tox = 1;
+		else if( edge == CollisionDetector.TOP ) toy = -1;
+		else if( edge == CollisionDetector.BOTTOM ) toy = 1;
+		else;
+		
+		if( x + tox < 0 || x + tox >= HackourGame.UNITS_WIDTH ){
+			return false;
+		}
+		if( y + toy < 0 || y + toy >= HackourGame.UNITS_HEIGHT ){
+			return false;
+		}
+		
+		return HackourGame.RUNNING_GAME.check_unit( x + tox, y + toy, PhysicalObject.TYPE_STATIC );
+	}
+	public static boolean OnBlock( int x, int y, Game g ){
+		boolean has_block = g.check_unit(x,y + 1, PhysicalObject.TYPE_STATIC);
+		return has_block;
+	}
+	
 	public static void CheckCollisionsFor( PhysicalObject entity, ArrayList<PhysicalObject> stats ){
 		for( PhysicalObject stat : stats ){
 			int direction = CollisionDetector.CheckCollision( entity.getX(), entity.getY(), entity.getWidth(), entity.getHeight(), stat.getX(), stat.getY(), stat.getWidth(), stat.getHeight() );
-			entity.onCollision( stat, direction );
+			if( direction != 0 ) entity.onCollision( stat, direction );
 		}
 	}
 	public static int CheckCollisionsFor_Direction( PhysicalObject entity, ArrayList<PhysicalObject> stats ){
@@ -70,7 +95,21 @@ public class CollisionDetector{
 			int fromtop = Math.abs( stat_y - ent_far_y );
 			int frombottom = Math.abs( ent_y - stat_far_y );
 			
+			int MAX = fromleft + fromright + fromtop + frombottom;
 			int[] distances = { fromleft, fromright, fromtop, frombottom };
+			
+			if( CollisionDetector.CheckHiddenEdge( stat_x, stat_y, CollisionDetector.LEFT ) ){
+				distances[0] = MAX;
+			}
+			if( CollisionDetector.CheckHiddenEdge( stat_x, stat_y, CollisionDetector.RIGHT ) ){
+				distances[1] = MAX;
+			}
+			if( CollisionDetector.CheckHiddenEdge( stat_x, stat_y, CollisionDetector.TOP ) ){
+				distances[2] = MAX;
+			}
+			if( CollisionDetector.CheckHiddenEdge( stat_x, stat_y, CollisionDetector.BOTTOM ) ){
+				distances[3] = MAX;
+			}
 			
 			int min = CollisionDetector.min( distances );
 			if( min == fromleft ){

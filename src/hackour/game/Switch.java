@@ -10,6 +10,9 @@ public class Switch extends PowerableObject{
 		super(x,y);
 	}
 	
+	@Override
+	public void doTick( Game g ){}
+	
 	public void paint( Graphics gfx ){
 		Color old = gfx.getColor();
 		

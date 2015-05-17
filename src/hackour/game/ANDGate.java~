@@ -1,0 +1,11 @@
+package hackour.game;
+
+public class ANDGate extends ElectricGate{
+	public ANDGate(){}
+	
+	@Override
+	public void doTick( Game g ){
+		CheckInputs();
+		out = in1 && in2;
+	}
+}

@@ -5,6 +5,8 @@ import java.awt.Graphics;
 public abstract class PhysicalObject implements GObject{
 	public static final int TYPE_ENTITY = 50;
 	public static final int TYPE_STATIC = 51;
+	public static final int TYPE_BACKGROUND = 52;
+	public static final int TYPE_ENEMY = 53;
 	
 	protected int type = PhysicalObject.TYPE_ENTITY;
 	

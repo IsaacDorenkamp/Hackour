@@ -20,7 +20,13 @@ public class Layer{
 	public ArrayList<PhysicalObject> GetObjects(){
 		return new ArrayList<PhysicalObject>(objs);
 	}
+	public void clear(){
+		objs.clear();
+	}
 	
 	public int GetSpawnX(){ return spawn_x; }
 	public int GetSpawnY(){ return spawn_y; }
+	
+	public void SetSpawnX(int sx){ spawn_x = sx; }
+	public void SetSpawnY(int sy){ spawn_y = sy; }
 }

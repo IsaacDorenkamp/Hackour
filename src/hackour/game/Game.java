@@ -17,6 +17,13 @@ public class Game{
 	
 	private GameCanvas canv = null;
 	
+	private boolean removing = false;
+	public boolean isRemoving(){
+		return removing;
+	}
+	public void repaint(){
+		canv.repaint();
+	}
 	private Game parent = this;
 	private Thread ticker = new Thread(){
 		@Override
@@ -36,8 +43,8 @@ public class Game{
 				synchronized(toremove){
 					if( toremove.size() > 0 ){
 						for( PhysicalObject rmv : toremove ){
-							if( rmv.getType() == PhysicalObject.TYPE_ENTITY ) entities.remove( rmv );
-							else if( rmv.getType() == PhysicalObject.TYPE_STATIC ){
+							if( rmv.getType() == PhysicalObject.TYPE_ENTITY || rmv.getType() == PhysicalObject.TYPE_ENEMY ) entities.remove( rmv );
+							else if( rmv.getType() == PhysicalObject.TYPE_STATIC || rmv.getType() == PhysicalObject.TYPE_BACKGROUND ){
 								stats.remove( rmv );
 								stat_map[rmv.getY()][rmv.getX()] = null;
 							}else;
@@ -45,14 +52,15 @@ public class Game{
 						}
 						toremove.clear();
 					}
+					removing = false;
 				}
 				synchronized(toadd){
 					if( toadd.size() > 0 ){
 						for( PhysicalObject obj : toadd ){
 							worldObjects.add( obj );
 							int type = ( ( PhysicalObject ) obj ).getType();
-							if( type == PhysicalObject.TYPE_ENTITY ) entities.add( (PhysicalObject) obj );
-							if( type == PhysicalObject.TYPE_STATIC ){
+							if( type == PhysicalObject.TYPE_ENTITY || type == PhysicalObject.TYPE_ENEMY ) entities.add( (PhysicalObject) obj );
+							if( type == PhysicalObject.TYPE_STATIC || type == PhysicalObject.TYPE_BACKGROUND ){
 								if( stat_map[obj.getY()][obj.getX()] != null ) continue;
 								else{
 									stats.add( obj );
@@ -98,9 +106,11 @@ public class Game{
 		return false;
 	}
 	public PhysicalObject get_unit( int x, int y ){
+		if( x < 0 || x >= HackourGame.UNITS_WIDTH || y < 0 || y >= HackourGame.UNITS_HEIGHT ) return null;
 		return stat_map[y][x];
 	}
 	public void set_unit( int x, int y, PhysicalObject obj ){
+		if( x < 0 || x >= HackourGame.UNITS_WIDTH || y < 1 || y >= HackourGame.UNITS_HEIGHT ) return;
 		stat_map[y][x] = obj;
 	}
 	public ArrayList<PhysicalObject> getStatics() {
@@ -153,6 +163,9 @@ public class Game{
 		}
 	}
 	public void RemoveAll(){
-		worldObjects.clear();
+		for( PhysicalObject g : worldObjects ){
+			toremove.add(g);
+		}
+		removing = true;
 	}
 }

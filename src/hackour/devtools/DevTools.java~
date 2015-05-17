@@ -4,13 +4,15 @@ import hackour.game.*;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
-
 import java.awt.event.*;
+
+import java.util.HashMap;
 
 public class DevTools extends JFrame implements ActionListener{
 	private HackourGame dev_on;
 	
 	private JTextArea logarea = new JTextArea();
+	private JTextArea vararea = new JTextArea();
 	private JMenuBar mbar = new JMenuBar();
 	private JMenu cheats = new JMenu("Cheats");
 	private JMenuItem gravity_invert = new JMenuItem("Invert Current Gravity State");
@@ -21,8 +23,9 @@ public class DevTools extends JFrame implements ActionListener{
 		setTitle("Hackour DevTools");
 		setSize( 500, 350 );
 		setLayout( new BorderLayout() );
-		add( new JScrollPane(logarea), BorderLayout.CENTER);
+		add( new JSplitPane( JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(logarea), new JScrollPane(vararea) ), BorderLayout.CENTER );
 		logarea.setEditable(false);
+		vararea.setEditable(false);
 		
 		//Menu Stuff
 		cheats.add(gravity_invert);
@@ -52,6 +55,23 @@ public class DevTools extends JFrame implements ActionListener{
 			logarea.setText(msg);
 		}else{
 			logarea.append( '\n' + msg );
+		}
+	}
+	
+	private HashMap<String,String> vars = new HashMap<>();
+	public void log_var( String var, String value ){
+		if( !vars.containsKey(var) ){
+			vars.put( var, value );
+		}else vars.replace(var, value);
+		vararea.setText("");
+		boolean first = true;
+		for( String key : vars.keySet() ){
+			if(first){
+				vararea.setText( String.format("%s: %s", key, vars.get(key)) );
+				first = false;
+			}else{
+				vararea.append('\n' + String.format("%s: %s", key, vars.get(key)) );
+			}
 		}
 	}
 	
